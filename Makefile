@@ -36,6 +36,9 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/drivers/fsm.c \
+Core/Src/drivers/pwrm.c \
+Core/Src/drivers/sim.c \
 Core/Src/drivers/debug.c \
 Core/Src/drivers/mpu6050.c \
 Core/Src/drivers/at45db.c \

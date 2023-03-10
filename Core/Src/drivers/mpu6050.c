@@ -223,7 +223,7 @@ PRIVATE void hardware_deinit(){
 void mpu6050_init(){
 
     // Inicio hardware I2C
-    init_hardware();
+    hardware_init();
      // Secuencia de arranque
     uint8_t ret = 0;
     uint8_t config = 0;
