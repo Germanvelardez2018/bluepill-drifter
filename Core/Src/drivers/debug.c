@@ -3,7 +3,7 @@
 #include "debug.h"
 
 
-
+// Definiciones necesarias para usar el driver en entorno STM32
 extern UART_HandleTypeDef   huart2;
 #define UART                huart2
 #define PUART               &huart2

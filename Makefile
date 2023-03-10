@@ -36,7 +36,8 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
-Core/Src/modulos/debug.c \
+Core/Src/drivers/debug.c \
+Core/Src/modulos/rtc.c \
 Core/Src/modulos/uart.c \
 Core/Src/modulos/spi.c \
 Core/Src/modulos/adc.c \
@@ -121,6 +122,7 @@ AS_INCLUDES =
 # C includes
 C_INCLUDES =  \
 -ICore/Src/modulos/include \
+-ICore/Src/drivers/include \
 -ICore/Inc \
 -IDrivers/STM32F1xx_HAL_Driver/Inc \
 -IDrivers/STM32F1xx_HAL_Driver/Inc/Legacy \
