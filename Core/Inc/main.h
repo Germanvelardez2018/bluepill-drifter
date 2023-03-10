@@ -66,6 +66,12 @@ void Error_Handler(void);
 #define IRQ_SIM_Pin GPIO_PIN_15
 #define IRQ_SIM_GPIO_Port GPIOA
 
+
+
+// Agregado manualmente
+#define SPI1_CS_Pin   GPIO_PIN_8
+#define SPI1_CS_Port  GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

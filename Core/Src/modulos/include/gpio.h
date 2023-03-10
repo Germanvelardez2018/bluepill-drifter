@@ -17,12 +17,10 @@ extern "C" {
  void GPIO_Init(void);
 
 
+ void gpio_irq_on();
 
 
-
-void gpio_irq_on();
-
-void gpio_irq_off();
+ void gpio_irq_off();
 
 
 #ifdef __cplusplus
