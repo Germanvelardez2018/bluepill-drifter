@@ -10,11 +10,12 @@ ADC_HandleTypeDef hadc1;//! HADC1
 
 
  uint32_t get_adc(){
+
   uint32_t adc_value = 0;
   uint32_t accu = 0;
 
   for(int32_t i =0 ; i< FILTRO_N;i++){
-     HAL_ADC_Start(&hadc1);
+    HAL_ADC_Start(&hadc1);
     HAL_Delay(35);
     adc_value = HAL_ADC_GetValue(&hadc1);
     accu = accu + adc_value;
@@ -73,6 +74,10 @@ ADC_HandleTypeDef hadc1;//! HADC1
 
 }
 
+
+void ADC_deinit(){
+  HAL_ADC_DeInit(&hadc1);
+}
 
 
 

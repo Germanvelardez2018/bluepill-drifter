@@ -97,12 +97,13 @@ PRIVATE void  mem_set_counter(uint8_t* counter){
 void mem_s_init(){
     mem_init();
     mem_sleep();
+   
 }
 
 
 
 void mem_s_deinit(){
-   at45db_deinit();
+    at45db_deinit();
 }
 
 

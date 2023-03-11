@@ -30,7 +30,7 @@ I2C_HandleTypeDef hi2c2;
 
 
 void I2C_Deinit(){
-  HAL_I2C_Deinit(&hi2c2);
+  HAL_I2C_DeInit(&hi2c2);
 }
 
 /**

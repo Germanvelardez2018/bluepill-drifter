@@ -220,13 +220,12 @@ PRIVATE void upload_routine()
     sprintf(buffer_upload, "Extraer :%d datos\n", counter);
     counter --; // 1 dato, posicion 0
     debug_print(buffer_upload);
-    uint8_t b512[520] = {0};
+    uint8_t b512[512] = {0};
 
     do{
       // si devuelve 0 terminamos todo
       counter = sim_buffer_512b(b512, 512,counter);
-      debug_print("enviando datos");
-      debug_print(b512);
+     
       MQTT_SEND_DATA(b512);
       delay(500); 
     }
@@ -253,15 +252,17 @@ PRIVATE void save_data_routine()
 PRIVATE void app_init(){
   HAL_Init();
   clock_master_set(CLOCK_2MHZ);
+  ADC_Init();
   GPIO_Init();
   mem_s_init();
-  mpu6050_init();
   pwrm_init();
   debug_init();
   debug_print(INIT_MSG);
-  ADC_Init();
   fsm_init();
+  mpu6050_init(); 
   debug_print(get_state_device());
+ 
+  
 }
 
 
@@ -279,6 +280,7 @@ int main(void){
     sim_init();
     fsm_set_state(FSM_UPLOAD);
   }
+
   if (state == FSM_SAVE_DATA || state == FSM_UPLOAD){
     sim_init();
     delay(200);
@@ -303,7 +305,7 @@ int main(void){
                counter_interval = counter_interval + 1;
                if (counter_interval >= cmax_interval)fsm_set_state(FSM_SAVE_DATA);
                else{
-                uint8_t state = fsm_get_state();
+                state = fsm_get_state();
                 if (state == FSM_CHECK_ONLY)sim_deinit();
                }
           break;
@@ -337,8 +339,13 @@ int main(void){
             debug_print("\r\nFSM: UNDEFINED \r\n");
           break;
     }
-    uint8_t ret = fsm_get_state();
-    if (ret == FSM_CHECK_ONLY)sleep_interval();   // Solo en estado Check el micro entra en sleep
+    uint8_t state = fsm_get_state();
+    if (state == FSM_CHECK_ONLY){
+
+      // Apago todo y me voy a dormir
+      sleep_interval();   // Solo en estado Check el micro entra en sleep
+
+    } 
   }
 }
 

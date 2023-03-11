@@ -14,6 +14,8 @@ extern "C" {
 
  void MX_ADC1_Init(void);
 
+ void ADC_deinit();
+
 
 #ifdef __cplusplus
 }

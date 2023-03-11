@@ -53,6 +53,17 @@ PRIVATE float SCALA_DIV = 16384.0;
 
 
 
+
+
+
+PRIVATE void hardware_init(){
+    I2C_Init();
+}
+PRIVATE void hardware_deinit(){
+    I2C_Deinit();
+
+}
+
 PRIVATE inline void i2c_write_mem( uint8_t address_reg,uint8_t* buffer,uint32_t len){
     HAL_I2C_Mem_Write(MPU6050_INSTANCE,MPU6050_ADDRESS,address_reg,1,buffer,len,MPU6050_TIMEOUT);
 }
@@ -207,14 +218,6 @@ void mpu6050_get_measure(uint8_t* buffer){
 
 
 
-
-PRIVATE void hardware_init(){
-    I2C_Init();
-}
-PRIVATE void hardware_deinit(){
-    I2C_Deinit();
-
-}
 /**
  * @brief Configuramos el periferico y el modulo a utilizar
  * 
@@ -242,7 +245,6 @@ void mpu6050_init(){
     // Calibramos
     mpu6050_calibrate_and_save_offset();
     mpu6050_get_offset();
-    mpu6050_sleep();
 
 }
 

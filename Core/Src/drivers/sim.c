@@ -280,7 +280,7 @@ void sim7000g_set_irt(){
 
 
 uint8_t sim_buffer_512b(uint8_t *buffer, uint32_t len, uint32_t c){
-    uint8_t b[200]={0};
+    uint8_t b[530]={0};
     memset(buffer, 0, len);
     uint32_t counter = c;
     uint32_t pos=0;
@@ -291,23 +291,17 @@ uint8_t sim_buffer_512b(uint8_t *buffer, uint32_t len, uint32_t c){
         mem_read_data(data, counter);
         l = strlen(data);
 
-        sprintf(b,"mem:%s, len:%d",data,l);
-        //debug_print(b);
-
-        int result = (len - 1) -(pos + l)  ;
-        sprintf(b,"mem:%s, len:%d resultado%d\n",data,l,result);
-        debug_print(b);
+        
 
         if ((pos + l) < (len - 1))
         {
-            sprintf(&(buffer[pos]), "%s", data);
-            sprintf(b,"adding:%s\n",buffer);
-            debug_print(b);
+            sprintf(&(buffer[pos]), "%s s", data);
+            //sprintf(b,"adding:%s\n",buffer);
+            //debug_print(b);
             pos = (pos + l) + 1;
             if (counter >= 1)
                 counter--; // if(counter != 0 && (counter - 1)>= 0)counter--;
-            else
-                run = 0;
+            else run = 0;
         }
         else
         {
@@ -316,7 +310,7 @@ uint8_t sim_buffer_512b(uint8_t *buffer, uint32_t len, uint32_t c){
         }
         buffer[len - 1] = 0;
     }
-    sprintf(b,"final buffer%s,counter:%d\n",b,counter);
+    sprintf(b,"final buffer%s,counter:%d\n",buffer,counter);
     
     debug_print(b);
     return counter;

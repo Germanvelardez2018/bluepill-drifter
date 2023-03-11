@@ -143,7 +143,11 @@ void at45db_write_buffer1(uint8_t* data,uint8_t len, uint8_t pos){
 
 
 void at45db_read_buffer1(uint8_t* data,uint8_t len, uint8_t pos){
-    uint8_t cmd[5] ={CMD_READBUFF1,0,0,pos,0};
+    uint8_t cmd[5] ={0};
+    cmd[0] = CMD_READBUFF1;
+    cmd[1] = 0;
+    cmd[2] = 0;
+    cmd[3] = pos ;
     gpio_write(0);
     spi_write(cmd,5);
     delay(1);
@@ -154,7 +158,11 @@ void at45db_read_buffer1(uint8_t* data,uint8_t len, uint8_t pos){
 
 
 void at45db_write_buffer2(uint8_t* data,uint8_t len, uint8_t pos){
-        uint8_t cmd[4] ={CMD_READBUFF2,0,0,pos};
+         uint8_t cmd[4] ={0};
+        cmd[0] = CMD_WRITEBUFF2;
+        cmd[1] = 0;
+        cmd[2] = 0;
+        cmd[3] = pos ;
         gpio_write(0);
         spi_write(cmd,4);
         spi_write(data,len);
@@ -164,7 +172,11 @@ void at45db_write_buffer2(uint8_t* data,uint8_t len, uint8_t pos){
 
 
 void at45db_read_buffer2(uint8_t* data,uint8_t len, uint8_t pos){
-        uint8_t cmd[5] ={CMD_READBUFF2,0,0,pos,0};
+        uint8_t cmd[5] ={0};
+        cmd[0] = CMD_READBUFF2;
+        cmd[1] = 0;
+        cmd[2] = 0;
+        cmd[3] =  pos  ;
         gpio_write(0);
         spi_write(cmd,5);
         spi_read(data,len);

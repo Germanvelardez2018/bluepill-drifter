@@ -49,7 +49,9 @@ void uart_deinit(){
  * @param string Cadena string con caracter de finalizacion ('0')
  * **/
 inline void uart_write_string(char* string){
+    uart_init();
     HAL_UART_Transmit(PUART,string,strlen(string),DEBUG_TIMEOUT);
+    uart_deinit();
 }
 
 
@@ -59,7 +61,9 @@ inline void uart_write_string(char* string){
  * @param len Tamanio del buffer
  * **/
 inline void uart_write_raw(uint8_t* array,uint32_t len){
+    uart_init();
     HAL_UART_Transmit(PUART,array,len,DEBUG_TIMEOUT);
+    uart_deinit();
 }
 
 

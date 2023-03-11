@@ -11,7 +11,7 @@ echo -e "\n\n"
 #read -p "introduce the name of the file .hex what you want to flash: " file
 
 echo "flash the device..."
-openocd -f interface/jlink.cfg -f target/stm32f1x.cfg -c "program build/$(ls ./build | grep .hex) verify reset"
+openocd -f interface/jlink.cfg -f target/stm32f1x.cfg    -c "program build/$(ls ./build | grep .hex) verify reset"
 
 
 # Leer memoria
