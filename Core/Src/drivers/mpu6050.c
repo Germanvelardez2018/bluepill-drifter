@@ -252,7 +252,7 @@ void mpu6050_init(){
 
 
  void mpu6050_deinit(){
-     harware_deinit();
+     hardware_deinit();
 }
 
 

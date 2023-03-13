@@ -62,6 +62,8 @@ PRIVATE uint32_t bat = 0;
 
 PRIVATE uint8_t *get_state_device(){
 #define VBAT (13.93) // Se obtiene con medicion real
+  bat = get_adc();
+
   float vbat = (bat * VBAT) / 4096;
   mem_s_get_counter(&counter);
   mem_s_get_max_amount_data(&cmax);
@@ -86,7 +88,6 @@ PRIVATE void check_routine()
   uint8_t opt = 0;
   uint8_t out = 0;
   //Siempre leer bateria antes de encender el sim, voltaje mas estable
-  bat = get_adc();
   sim_init();         // Encender el modulo
   delay(350);
   sim_gps_on();       // enciendo gps
@@ -236,6 +237,8 @@ PRIVATE void upload_routine()
 
 PRIVATE void save_data_routine()
 {
+  mpu6050_init(); 
+
   mem_s_get_counter(&counter);
   uint8_t buffer[175] = {0};
   uint8_t sensor[50]={0};
@@ -247,19 +250,18 @@ PRIVATE void save_data_routine()
   debug_print(buffer);
   mem_write_data(buffer, counter);
   sim_gps_off();
+  mpu6050_deinit();
 }
 
 PRIVATE void app_init(){
   HAL_Init();
   clock_master_set(CLOCK_2MHZ);
-  ADC_Init();
   GPIO_Init();
   mem_s_init();
   pwrm_init();
   debug_init();
   debug_print(INIT_MSG);
   fsm_init();
-  mpu6050_init(); 
   debug_print(get_state_device());
  
   
@@ -343,7 +345,12 @@ int main(void){
     if (state == FSM_CHECK_ONLY){
 
       // Apago todo y me voy a dormir
+
+      mem_s_deinit();
+
       sleep_interval();   // Solo en estado Check el micro entra en sleep
+
+      mem_s_init();
 
     } 
   }

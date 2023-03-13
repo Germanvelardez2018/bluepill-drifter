@@ -160,7 +160,7 @@ void sim_init(){
     debug_print("init sim \r\n");
     HAL_GPIO_WritePin(SIM_BAT_ENABLE_GPIO_Port, SIM_BAT_ENABLE_Pin, 1);
     HAL_GPIO_WritePin(SIM_PWRKEY_GPIO_Port, SIM_PWRKEY_Pin, 1);
-    MX_USART1_UART_Init();
+    USART1_UART_Init();
     wait_for_sim();
     sim_echo_off();
 }
@@ -170,6 +170,7 @@ void sim_deinit(){
     delay(800);
     HAL_GPIO_WritePin(SIM_BAT_ENABLE_GPIO_Port, SIM_BAT_ENABLE_Pin, 0);
     HAL_GPIO_WritePin(SIM_PWRKEY_GPIO_Port, SIM_PWRKEY_Pin, 0);
+    USART1_Deinit();
 }
 
 inline void sim_version(){

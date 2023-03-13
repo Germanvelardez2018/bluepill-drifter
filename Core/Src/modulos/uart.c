@@ -23,7 +23,7 @@ void uart1_clear_irq(){
 
 
 
- void MX_USART1_UART_Init(void)
+ void USART1_UART_Init(void)
 {
   huart1.Instance = USART1;
   huart1.Init.BaudRate = 115200;
@@ -39,7 +39,7 @@ void uart1_clear_irq(){
   }
 }
 
- void MX_USART2_UART_Init(void)
+ void USART2_UART_Init(void)
 {
   huart2.Instance = USART2;
   huart2.Init.BaudRate = 19200;
@@ -54,6 +54,10 @@ void uart1_clear_irq(){
     Error_Handler();
   }
   
+}
+
+void USART1_Deinit(){
+  HAL_UART_DeInit(&huart1);
 }
 
 

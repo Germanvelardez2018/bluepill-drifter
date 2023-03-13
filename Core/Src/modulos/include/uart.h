@@ -27,12 +27,16 @@ void uart1_clear_irq();
 /***
  * Inicio el hardware UART1
 */
-void MX_USART1_UART_Init(void);
+void USART1_UART_Init(void);
+
+
+
+void USART1_Deinit();
 
 /**
  * Inicio el hardware UART2
 */
-void MX_USART2_UART_Init(void);
+void USART2_UART_Init(void);
 
 
 

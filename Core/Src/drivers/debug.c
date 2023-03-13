@@ -8,7 +8,7 @@ extern UART_HandleTypeDef   huart2;
 #define UART                huart2
 #define PUART               &huart2
 #define DEBUG_TIMEOUT       (500)
-#define DEBUG_ON            1
+#define DEBUG_ON            0
 
 
 
@@ -31,7 +31,7 @@ inline void uart_init(void){
   {
     Error_Handler();
   }
-    MX_USART2_UART_Init();
+    USART2_UART_Init();
 }
 
 
@@ -49,9 +49,7 @@ void uart_deinit(){
  * @param string Cadena string con caracter de finalizacion ('0')
  * **/
 inline void uart_write_string(char* string){
-    uart_init();
     HAL_UART_Transmit(PUART,string,strlen(string),DEBUG_TIMEOUT);
-    uart_deinit();
 }
 
 
@@ -61,9 +59,9 @@ inline void uart_write_string(char* string){
  * @param len Tamanio del buffer
  * **/
 inline void uart_write_raw(uint8_t* array,uint32_t len){
-    uart_init();
+    
     HAL_UART_Transmit(PUART,array,len,DEBUG_TIMEOUT);
-    uart_deinit();
+    
 }
 
 

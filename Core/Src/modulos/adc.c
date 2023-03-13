@@ -11,6 +11,8 @@ ADC_HandleTypeDef hadc1;//! HADC1
 
  uint32_t get_adc(){
 
+  ADC_Init();
+
   uint32_t adc_value = 0;
   uint32_t accu = 0;
 
@@ -21,6 +23,7 @@ ADC_HandleTypeDef hadc1;//! HADC1
     accu = accu + adc_value;
   }
   adc_value = accu / FILTRO_N;
+  ADC_deinit();
   return adc_value;
 }
 
@@ -63,7 +66,7 @@ ADC_HandleTypeDef hadc1;//! HADC1
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_55CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
