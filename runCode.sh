@@ -2,12 +2,12 @@
 # Author: German Velardez     (germanvelardez16@gmail.com)
 #
 #
-echo -e "making somethings ... \n\t\t"
+echo  "making somethings ... \n\t\t"
 make
 
 #file= $(ls ./build | grep .hex)
 
-echo -e "\n\n"
+echo  "\n\n"
 #read -p "introduce the name of the file .hex what you want to flash: " file
 
 echo "flash the device..."
