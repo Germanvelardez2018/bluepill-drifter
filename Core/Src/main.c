@@ -263,6 +263,8 @@ PRIVATE void app_init(){
   debug_print(INIT_MSG);
   fsm_init();
   debug_print(get_state_device());
+  HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
+  HAL_Delay(200);
  
   
 }
