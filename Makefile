@@ -36,6 +36,7 @@ BUILD_DIR = build
 ######################################
 # C sources
 C_SOURCES =  \
+Core/Src/drifter.c \
 Core/Src/drivers/fsm.c \
 Core/Src/drivers/pwrm.c \
 Core/Src/drivers/sim.c \

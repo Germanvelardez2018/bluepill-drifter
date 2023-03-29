@@ -161,7 +161,7 @@ void sim_init(){
     HAL_GPIO_WritePin(SIM_BAT_ENABLE_GPIO_Port, SIM_BAT_ENABLE_Pin, 1);
     HAL_GPIO_WritePin(SIM_PWRKEY_GPIO_Port, SIM_PWRKEY_Pin, 1);
     USART1_UART_Init();
-    wait_for_sim();
+    delay(30000);
     sim_echo_off();
 }
 

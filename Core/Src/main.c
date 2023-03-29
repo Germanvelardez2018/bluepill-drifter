@@ -1,16 +1,4 @@
-/* USER CODE BEGIN Header */
-// Optimizacion de la aplicacion
-/**
- * 1) Intervalos mas largo:
- *  checkout minimo 15 minutos (5 anterior version)
- * 2) Envios de texto mas compactos
- * 3) Deep sleep ajustado
- *
- *
- *
- *
- *
- */
+
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
@@ -25,15 +13,74 @@
 #include "rtc.h"
 #include "pwrm.h"
 #include "adc.h"
+#include "drifter.h"
+
+
+
+
+char* clist[9]={
+    "CMD_INTERVAL_5M  ",
+    "CMD_INTERVAL_15M ",
+    "CMD_INTERVAL_30M ",
+    "CMD_INTERVAL_60M ", 
+    "CMD_SAVE_50D    ",
+    "CMD_SAVE_150D    ",
+    "CMD_SAVE_250D   ",
+    "CMD_FORZAR_UPLOAD",
+    "CMD_TEST_CMD     "
+};
+
+
+
+
+
+#define DRIFTER_VERSION                 "VERSION 1.0.5"
+#define DRIFTER_STATUS_FORMAT           ("C:%d/%d,I:%d/%d,VB:%.2fV ,LCMD:%d")
+
+
+
+
+
+
+#define CMD_LEN      (18)
+
+
+
+
+
+typedef enum{
+    CMD_INTERVAL_5M   = 1,
+    CMD_INTERVAL_15M  = 2,
+    CMD_INTERVAL_30M  = 3,
+    CMD_INTERVAL_60M  = 4, 
+    CMD_SAVE_50D     = 5,
+    CMD_SAVE_150D     = 6,
+    CMD_SAVE_250D    = 7,
+    CMD_FORZAR_UPLOAD = 8,
+    CMD_TEST_CMD      = 9
+
+} command_t;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 extern UART_HandleTypeDef huart1;
-#define MODO_1MCHECK  "\r\nCMD:Check 1m\r\n"
-#define MODO_10MCHECK  "\r\nCMD:Check 10m\r\n"
-#define MODO_30MCHECK  "\r\nCMD:Check 30m\r\n"
 
 
-#define UPLOAD_CHECK "\r\nCMD:Forzar upload\r\n"
-#define CMD_CHECK "\r\nCMD Nuevo intervalo:%d \r\n"
+
+
 #define SENSOR_FORMAT ">%s,%s"
 #define INIT_MSG "Drifter init \r\n"
 #define CHECK_MSG_LEN (strlen(CHECK_MSG))
@@ -50,7 +97,7 @@ extern UART_HandleTypeDef huart1;
 
 PRIVATE uint8_t buffer_upload[200];
 
-#define ID_FORMAT ("C:%d/%d,I:%d/%d,VB:%.2fV ,LCMD:%d")
+#define ID_FORMAT ("C:%d/%d,I:%d,VB:%.2fV ,LCMD:%d")
 #define STATE_DEVICE_LEN (100)
 PRIVATE uint8_t state_device[STATE_DEVICE_LEN];
 PRIVATE uint8_t counter = 0; //  Contador de muestras almacenadas
@@ -67,13 +114,12 @@ PRIVATE uint8_t *get_state_device(){
   float vbat = (bat * VBAT) / 4096;
   mem_s_get_counter(&counter);
   mem_s_get_max_amount_data(&cmax);
-  mem_s_get_cmax_interval(&cmax_interval);
   uint8_t itime = pwrm_get_itime(); // tiempo del intervalo
 
   sprintf(state_device, ID_FORMAT,
           counter,
           cmax,
-          (cmax_interval * itime),itime,vbat, last_comand);
+          itime,vbat, last_comand);
   return state_device;
 }
 
@@ -81,14 +127,20 @@ PRIVATE uint8_t *get_state_device(){
 #define delay_tiny (400)
 #define min_delay (100)
 
-PRIVATE void check_routine()
+
+
+
+
+
+
+
+PRIVATE void check_command()
 {
   uint8_t p_cmd_buffer[25] = {0};
   uint8_t timeout = 0;
   uint8_t opt = 0;
   uint8_t out = 0;
   //Siempre leer bateria antes de encender el sim, voltaje mas estable
-  sim_init();         // Encender el modulo
   delay(350);
   sim_gps_on();       // enciendo gps
   delay(350);
@@ -124,64 +176,51 @@ PRIVATE void check_routine()
       switch (opt)
       {
 
-      case 1:
-        min = 20; // intervalo 20m
-        sprintf(p_cmd_buffer, CMD_CHECK, min);
-        cmax_interval = 2;
-        mem_s_set_cmax_interval(&cmax_interval);
+      case CMD_INTERVAL_5M:
+        itime = 5;
+        prwm_set_itime(&itime);
         break;
 
-      case 2:
-        min = 40; // intervalo 40m
-        sprintf(p_cmd_buffer, CMD_CHECK, min);
-        cmax_interval = 4;
-        mem_s_set_cmax_interval(&cmax_interval);
+      case CMD_INTERVAL_15M:
+        itime = 15;
+        prwm_set_itime(&itime);
         break;
 
-      case 3:
-        min = 60; // intervalo 60m
-        sprintf(p_cmd_buffer, CMD_CHECK, min);
-        cmax_interval = 6;
-        mem_s_set_cmax_interval(&cmax_interval);
+      case CMD_INTERVAL_30M:
+        itime = 30;
+        prwm_set_itime(&itime);
         break;
 
-      case 4:
-        sprintf(p_cmd_buffer, "CMD:data 20\r\n");
-        cmax = 20; // max data 20
-        mem_s_set_max_amount_data(&cmax);
+      case CMD_INTERVAL_60M:
+        itime = 60;
+        prwm_set_itime(&itime);
         break;
 
-      case 5:
-        sprintf(p_cmd_buffer, "CMD:50 data\r\n");
+      case CMD_SAVE_50D:
         cmax = 50; // max data 50
         mem_s_set_max_amount_data(&cmax);
         break;
 
-      case 6:
-        sprintf(p_cmd_buffer, UPLOAD_CHECK);
+      case CMD_SAVE_150D:
+        cmax=150;
+        mem_s_set_max_amount_data(&cmax);
+
+       
+        break;
+
+      case CMD_SAVE_250D:
+        cmax=250;
+        mem_s_set_max_amount_data(&cmax);
+        break;
+
+      case CMD_FORZAR_UPLOAD:
         fsm_set_state(FSM_UPLOAD); // Forzar extraccion
-        counter_interval = 0;      // evita que mande save data en vez de upload
         break;
 
-      case 7:
-        sprintf(p_cmd_buffer, MODO_1MCHECK);
-        counter_interval = 0;      // evita que mande save data en vez de upload
+      case CMD_TEST_CMD:
         itime = 1;
-        prwm_set_itime(itime);
-        break;
-
-      case 8:
-        sprintf(p_cmd_buffer, MODO_10MCHECK);
-        counter_interval = 0;      // evita que mande save data en vez de upload
-        itime = 15;
-        prwm_set_itime(itime);
-        break;
-
-      case 9:
-        sprintf(p_cmd_buffer, MODO_30MCHECK);
-        counter_interval = 0;      // evita que mande save data en vez de upload
-        itime = 30;
-        prwm_set_itime(itime);
+        prwm_set_itime(&itime);
+       
         break;
 
       default:
@@ -190,8 +229,8 @@ PRIVATE void check_routine()
       }
 
       if (cmd_valid){
-        debug_print(p_cmd_buffer);
-        sim7000g_mqtt_publish(RETURN_CMD, p_cmd_buffer, strlen(p_cmd_buffer));
+        debug_print(clist[opt - 1]);
+        sim7000g_mqtt_publish(RETURN_CMD, clist[opt-1], CMD_LEN);
         last_comand = opt;
         delay(450);
       }
@@ -218,15 +257,15 @@ PRIVATE void upload_routine()
     delay(500);
   }
   else{
-    sprintf(buffer_upload, "Extraer :%d datos\n", counter);
+    sprintf(buffer_upload, "EExtraer :%d datos\n", counter);
     counter --; // 1 dato, posicion 0
     debug_print(buffer_upload);
     uint8_t b512[512] = {0};
 
     do{
       // si devuelve 0 terminamos todo
+      debug_print("dentro de do\n");
       counter = sim_buffer_512b(b512, 512,counter);
-     
       MQTT_SEND_DATA(b512);
       delay(500); 
     }
@@ -238,7 +277,6 @@ PRIVATE void upload_routine()
 PRIVATE void save_data_routine()
 {
   mpu6050_init(); 
-
   mem_s_get_counter(&counter);
   uint8_t buffer[175] = {0};
   uint8_t sensor[50]={0};
@@ -251,7 +289,33 @@ PRIVATE void save_data_routine()
   mem_write_data(buffer, counter);
   sim_gps_off();
   mpu6050_deinit();
+  counter = counter + 1;
+  mem_s_set_counter(&counter);
+  
+
 }
+
+
+
+
+
+
+PRIVATE void routine(){
+
+
+  sim_init();         // Encender el modulo
+  check_command();     //Verifico si tengo un comando nuevo
+  MQTT_SEND_CHECK();
+  delay(500);
+  if(fsm_get_state() != FSM_UPLOAD)     save_data_routine();
+  
+  if (counter >= cmax)  fsm_set_state(FSM_UPLOAD);
+  else     sim_deinit();
+  
+}
+
+
+
 
 PRIVATE void app_init(){
   HAL_Init();
@@ -262,72 +326,25 @@ PRIVATE void app_init(){
   debug_init();
   debug_print(INIT_MSG);
   fsm_init();
-  debug_print(get_state_device());
-  HAL_GPIO_TogglePin(LED_GPIO_Port,LED_Pin);
-  HAL_Delay(200);
- 
-  
+  debug_print(get_state_device()); 
 }
 
 
 int main(void){
+    app_init();
+    uint8_t state = fsm_get_state();
+    fsm_set_state(FSM_SAVE_DATA);
+    counter = 0;
+    mem_s_set_counter(&counter);
 
-
-
-  app_init();
-  uint8_t state = fsm_get_state();
-
-
-
-
-  if (counter > cmax){
-    sim_init();
-    fsm_set_state(FSM_UPLOAD);
-  }
-
-  if (state == FSM_SAVE_DATA || state == FSM_UPLOAD){
-    sim_init();
-    delay(200);
-    sim_gps_on();
-    delay(200);
-    sim_4g_connect();
-    delay(200);
-    sim_mqtt_connect();
-    delay(200);
-    sim_sleep();
-    delay(200);
-  }
   while (1){
-    switch (fsm_get_state()){
-
-
-          case FSM_CHECK_ONLY:
-               debug_print("\r\nFSM:CHECK\r\n ");
-               check_routine();
-               MQTT_SEND_CHECK();
-               delay(500);
-               counter_interval = counter_interval + 1;
-               if (counter_interval >= cmax_interval)fsm_set_state(FSM_SAVE_DATA);
-               else{
-                state = fsm_get_state();
-                if (state == FSM_CHECK_ONLY)sim_deinit();
-               }
-          break;
-
+    switch (state){
 
           case FSM_SAVE_DATA:
             debug_print("\r\nFSM:SAVE DATA \r\n ");
-            save_data_routine();
-            counter = counter + 1;
-            mem_s_set_counter(&counter);
-            if (counter >= cmax)fsm_set_state(FSM_UPLOAD);
-            else{
-              fsm_set_state(FSM_CHECK_ONLY);
-              sim_deinit();
-            }
-            counter_interval = 0;
+            routine();
+            
           break;
-
 
           case FSM_UPLOAD:
             debug_print("\r\nFSM: UPLOAD \r\n");
@@ -335,7 +352,7 @@ int main(void){
             sim_deinit();
             counter = 0;
             mem_s_set_counter(&counter);
-            fsm_set_state(FSM_CHECK_ONLY);
+            fsm_set_state(FSM_SAVE_DATA);
           break;
 
 
@@ -343,15 +360,14 @@ int main(void){
             debug_print("\r\nFSM: UNDEFINED \r\n");
           break;
     }
-    uint8_t state = fsm_get_state();
-    if (state == FSM_CHECK_ONLY){
+
+    state = fsm_get_state();
+    if (state != FSM_UPLOAD){
 
       // Apago todo y me voy a dormir
 
       mem_s_deinit();
-
       sleep_interval();   // Solo en estado Check el micro entra en sleep
-
       mem_s_init();
 
     } 
@@ -365,19 +381,11 @@ int main(void){
 
 
 
-
-
-/**
- * @brief  This function is executed in case of error occurrence.
- * @retval None
- */
 void Error_Handler(void)
 {
-  /* USER CODE BEGIN Error_Handler_Debug */
-  /* User can add his own implementation to report the HAL error return state */
+  
   __disable_irq();
   while (1)
   {
   }
-  /* USER CODE END Error_Handler_Debug */
 }
