@@ -311,10 +311,17 @@ void mem_s_set_cmax_interval(uint8_t* cmax_interval){
 
 
 
+void clear_memory(uint16_t len){
+    at45db_resumen();
+    for(uint16_t _len = 0; _len < len; _len ++){
+    at45db_clear_page( (MMAP_DATA_OFSSET+ _len),0);
+    debug_print("clear \r\n");
+    }
+    at45db_sleep();
+}
 
-/**
- * 
- * @note Para gestionar los contadores se utilizo buffer de la memoria flash y 
- *       de esta manera se maximizo la vida util de la memoria flash. 
- *       Por defecto se uso buffer2
-*/
+
+uint16_t get_counter_memory(){
+    uint16_t ret = get_counter();
+    return ret;
+}

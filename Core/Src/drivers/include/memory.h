@@ -144,9 +144,9 @@ void mem_full_clear();
 
 
 
+void clear_memory(uint16_t len);
 
-
-
+uint16_t get_counter_memory();
 
 
 

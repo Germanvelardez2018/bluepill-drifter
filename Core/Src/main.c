@@ -42,8 +42,8 @@ char* clist[9]={
 
 
 
-#define CMD_LEN      (18)
 
+PRIVATE  uint16_t ncounter= 0;
 
 
 
@@ -85,7 +85,7 @@ extern UART_HandleTypeDef huart1;
 #define INIT_MSG "Drifter init \r\n"
 #define CHECK_MSG_LEN (strlen(CHECK_MSG))
 #define CHECK_TOPIC "S" // topic devices
-#define DATA_TOPIC  "GPS"
+#define DATA_TOPIC  "DATA"
 #define CMD_TOPIC   "CMD"
 #define RETURN_CMD  "RCMD"
 #define BUFFER_SIZE 150
@@ -112,12 +112,11 @@ PRIVATE uint8_t *get_state_device(){
   bat = get_adc();
 
   float vbat = (bat * VBAT) / 4096;
-  mem_s_get_counter(&counter);
   mem_s_get_max_amount_data(&cmax);
   uint8_t itime = pwrm_get_itime(); // tiempo del intervalo
 
   sprintf(state_device, ID_FORMAT,
-          counter,
+          ncounter,
           cmax,
           itime,vbat, last_comand);
   return state_device;
@@ -178,22 +177,22 @@ PRIVATE void check_command()
 
       case CMD_INTERVAL_5M:
         itime = 5;
-        prwm_set_itime(&itime);
+        prwm_set_itime(itime);
         break;
 
       case CMD_INTERVAL_15M:
         itime = 15;
-        prwm_set_itime(&itime);
+        prwm_set_itime(itime);
         break;
 
       case CMD_INTERVAL_30M:
         itime = 30;
-        prwm_set_itime(&itime);
+        prwm_set_itime(itime);
         break;
 
       case CMD_INTERVAL_60M:
         itime = 60;
-        prwm_set_itime(&itime);
+        prwm_set_itime(itime);
         break;
 
       case CMD_SAVE_50D:
@@ -204,8 +203,6 @@ PRIVATE void check_command()
       case CMD_SAVE_150D:
         cmax=150;
         mem_s_set_max_amount_data(&cmax);
-
-       
         break;
 
       case CMD_SAVE_250D:
@@ -219,7 +216,7 @@ PRIVATE void check_command()
 
       case CMD_TEST_CMD:
         itime = 1;
-        prwm_set_itime(&itime);
+        prwm_set_itime(itime);
        
         break;
 
@@ -230,7 +227,7 @@ PRIVATE void check_command()
 
       if (cmd_valid){
         debug_print(clist[opt - 1]);
-        sim7000g_mqtt_publish(RETURN_CMD, clist[opt-1], CMD_LEN);
+        sim7000g_mqtt_publish(RETURN_CMD, clist[opt-1], strlen(clist[opt-1]));
         last_comand = opt;
         delay(450);
       }
@@ -245,39 +242,41 @@ PRIVATE void check_command()
 
 PRIVATE void upload_routine()
 {
-  // EL modulo se mantiene prendido de la rutina anterior
-  if (cmax < counter){
-    counter = cmax;
-    mem_s_set_counter(&counter);
-  }
-
-  if (counter == 0){
+  if (ncounter == 0){
     debug_print("Sin datos para extraer\r\n");
     MQTT_SEND_DATA("Sin datos para extraer");
     delay(500);
   }
   else{
-    sprintf(buffer_upload, "EExtraer :%d datos\n", counter);
-    counter --; // 1 dato, posicion 0
+    sprintf(buffer_upload, "EExtraer :%d datos\n", ncounter);
+    ncounter --; // 1 dato, posicion 0
     debug_print(buffer_upload);
     uint8_t b512[512] = {0};
 
+    uint16_t lastcounter = ncounter;
+
     do{
       // si devuelve 0 terminamos todo
-      debug_print("dentro de do\n");
-      counter = sim_buffer_512b(b512, 512,counter);
+      debug_print("generando buffer b512");
+      ncounter = sim_buffer_512b(b512, 512,ncounter);
+      debug_print(b512);
       MQTT_SEND_DATA(b512);
       delay(500); 
     }
-    while (counter != 0);
-    debug_print("Finalizo deployd \r\n");
+    while (ncounter != 0);
+    clear_memory(lastcounter);
+
   }
 }
+
+
+
+
 
 PRIVATE void save_data_routine()
 {
   mpu6050_init(); 
-  mem_s_get_counter(&counter);
+//  mem_s_get_counter(&counter);
   uint8_t buffer[175] = {0};
   uint8_t sensor[50]={0};
   uint8_t gps[120]={0};
@@ -286,11 +285,12 @@ PRIVATE void save_data_routine()
   sim_gps_get_info(gps, 120);
   sprintf(buffer, SENSOR_FORMAT, gps, sensor);
   debug_print(buffer);
-  mem_write_data(buffer, counter);
+  mem_write_data(buffer, ncounter);
   sim_gps_off();
   mpu6050_deinit();
-  counter = counter + 1;
-  mem_s_set_counter(&counter);
+  ncounter = ncounter + 1;
+
+
   
 
 }
@@ -307,13 +307,16 @@ PRIVATE void routine(){
   check_command();     //Verifico si tengo un comando nuevo
   MQTT_SEND_CHECK();
   delay(500);
-  if(fsm_get_state() != FSM_UPLOAD)     save_data_routine();
+  if(fsm_get_state() != FSM_UPLOAD){
+    save_data_routine();
+    if (counter >= cmax)  fsm_set_state(FSM_UPLOAD);
+    else     sim_deinit();
+  }  
   
-  if (counter >= cmax)  fsm_set_state(FSM_UPLOAD);
-  else     sim_deinit();
+  
+ 
   
 }
-
 
 
 
@@ -326,7 +329,14 @@ PRIVATE void app_init(){
   debug_init();
   debug_print(INIT_MSG);
   fsm_init();
+
+  ncounter = get_counter_memory();
+
   debug_print(get_state_device()); 
+  //limpio 30 memoria y empiezo
+  char b[20]={0};
+  sprintf(b,"get counter:%d\r\n",ncounter);
+  debug_print(b);
 }
 
 
@@ -334,8 +344,8 @@ int main(void){
     app_init();
     uint8_t state = fsm_get_state();
     fsm_set_state(FSM_SAVE_DATA);
-    counter = 0;
-    mem_s_set_counter(&counter);
+
+
 
   while (1){
     switch (state){
@@ -350,8 +360,9 @@ int main(void){
             debug_print("\r\nFSM: UPLOAD \r\n");
             upload_routine();
             sim_deinit();
-            counter = 0;
-            mem_s_set_counter(&counter);
+            ncounter = 0;
+            //counter = 0;
+            //mem_s_set_counter(&counter);
             fsm_set_state(FSM_SAVE_DATA);
           break;
 

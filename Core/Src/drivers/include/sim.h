@@ -17,7 +17,7 @@ extern "C" {
  * 
  * BUffer conjunto
 */
-uint8_t sim_buffer_512b(uint8_t*buffer,uint32_t len,uint32_t c);
+uint16_t sim_buffer_512b(uint8_t*buffer,uint32_t len,uint32_t c);
 
 
 

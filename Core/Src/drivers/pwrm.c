@@ -84,7 +84,7 @@ void HAL_RTC_AlarmAEventCallback(RTC_HandleTypeDef *hrtc){
 void pwrm_init(){
   rtc_init();
   mem_s_get_itime(&__ITIME__);
-  if(__ITIME__ >30){
+  if(__ITIME__ >60){
     __ITIME__=DEFAULT_ITIME;
     mem_s_set_itime(&__ITIME__);
   }

@@ -168,6 +168,10 @@ void at45db_sleep();
 void at45db_full_erase_memory();
 
 
+void at45db_clear_page( uint32_t pag,uint8_t pos);
+
+// Funcion para borrar paginas( No se borran realmente, se marcan como disponibles)
+ uint16_t get_counter();
 #ifdef __cplusplus
 }
 #endif

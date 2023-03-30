@@ -14,7 +14,7 @@
 #include "at45db.h"
 #include "gpio.h"
 #include "spi.h"
-
+#include "mapmem.h"
 extern   SPI_HandleTypeDef hspi1;
 
 
@@ -226,6 +226,74 @@ void at45db_read_page(uint8_t* data, uint8_t len, uint32_t pag,uint8_t pos){
         //wait
         at45db_wait(AT45DB_TIMEOUT);       
 }
+
+
+
+// "Borrar una pagina (la dejo disponible para escribir)"
+void at45db_clear_page( uint32_t pag,uint8_t pos){
+    // Basicamente escribo 0xFF en la primera posicion para denotar q esta disponible para escribir
+        uint8_t _len = 0xFF ;  // 
+        uint32_t address =  ((pag) << 8) | (uint32_t)pos ;   //          | xxxx xxxx |  xxxx xppp |pppp pppp |oooo oooo |
+        uint8_t cmd[4] ={0};
+        cmd[0] = CMD_WRITEPAGE_B1;
+        cmd[1] = (address >> 16) & 0xFF;
+        cmd[2] = (address >> 8) & 0xFF;
+        cmd[3] =  address & 0xFF;
+        gpio_write(0);
+        spi_write(cmd,4);
+        delay(1);
+        spi_write(&_len,1);
+        delay(1);
+        gpio_write(1);
+        at45db_wait(AT45DB_TIMEOUT);  
+
+}
+
+uint8_t at45db_is_clear(uint32_t pag,uint8_t pos){
+
+        uint32_t address =  (pag << 8) | (uint32_t)pos ;       //
+        uint8_t cmd[5] ={0};
+        uint8_t _len = 0x00;
+        cmd[0] = CMD_READPAGEHF;
+        cmd[1] = (address >> 16) & 0xFF;
+        cmd[2] = (address >> 8) & 0xFF;
+        cmd[3] =  address  & 0xFF;
+        cmd[4] = dummyByte;
+        gpio_write(0);
+        spi_write(cmd,5);
+        delay(1);
+        spi_read(&_len,1);
+        gpio_write(1);
+        //wait
+        at45db_wait(AT45DB_TIMEOUT);  
+        // si len es 0xFF, la memoria esta disponible
+        uint8_t ret = (_len == 0xFF)?0:1;
+        uint8_t b[100]={0};
+        sprintf(b,"isclear:%d\r\n",_len);
+        debug_print(b);
+        return ret;
+
+}
+
+//Cuento cuantas posiciones de memoria tiene un valor diferente a 0x00
+ uint16_t get_counter(){
+    uint16_t counter = 0;
+    #define COUNTERMAX   500
+    at45db_resumen();
+    uint8_t ret = 0;
+
+    do{
+        ret =  at45db_is_clear((uint32_t)(counter+MMAP_DATA_OFSSET),0);
+        counter = counter +ret;
+    }
+
+    while(ret == 1 && (counter <= COUNTERMAX));
+
+    at45db_sleep();
+    return counter;
+}
+
+
 
 
 
