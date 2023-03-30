@@ -280,10 +280,9 @@ void sim7000g_set_irt(){
 }
 
 
+
+
 uint16_t sim_buffer_512b(uint8_t *buffer, uint32_t len, uint32_t c){
-
-   // debug_print("dentro de la app para generar buffer");
-
     uint8_t b[540]={0};
     memset(buffer, 0, len);
     uint16_t ncounter = c;
